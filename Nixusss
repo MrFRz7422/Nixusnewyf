@@ -1,0 +1,852 @@
+--[[
+	NIXUS for DOORS
+	msdoors-style layout
+	• Speed that does not rubberband / glitch
+	• Anticheat bypass (metatable + WalkSpeed spoof + remote filter)
+	• Godmode / Anti-Entity / ESP hardened
+]]
+
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+Library.ForceCheckbox = false
+Library.ShowToggleFrameInKeybinds = true
+
+local Window = Library:CreateWindow({
+	Title = "NIXUS",
+	Footer = "doors • no-glitch speed + ac bypass",
+	Icon = 95816097006870,
+	NotifySide = "Right",
+	ShowCustomCursor = true,
+	Center = true,
+	AutoShow = true,
+	Resizable = true,
+})
+
+local Tabs = {
+	Main     = Window:AddTab("Main", "user"),
+	Floor    = Window:AddTab("Floor", "layers"),
+	Visuals  = Window:AddTab("Visuals", "eye"),
+	Exploits = Window:AddTab("Exploits", "sword"),
+	["UI Settings"] = Window:AddTab("Settings", "settings"),
+}
+
+-- =========================================================
+-- MAIN
+-- =========================================================
+local PlayerBox = Tabs.Main:AddLeftGroupbox("Player")
+
+PlayerBox:AddToggle("WalkSpeedEnabled", {
+	Text = "Walk Speed",
+	Default = true,
+})
+
+PlayerBox:AddSlider("WalkSpeed", {
+	Text = "Speed",
+	Default = 22,
+	Min = 16,
+	Max = 120,
+	Rounding = 0,
+})
+
+PlayerBox:AddToggle("SpeedBypass", {
+	Text = "Speed Bypass (no glitch)",
+	Default = true,
+	Tooltip = "Spoofs WalkSpeed to 16 server-side while keeping client speed",
+})
+
+PlayerBox:AddToggle("Noclip", { Text = "Noclip", Default = false })
+PlayerBox:AddToggle("InfJump", { Text = "Infinite Jump", Default = false })
+
+PlayerBox:AddSlider("JumpBoost", {
+	Text = "Jump Boost",
+	Default = 0,
+	Min = 0,
+	Max = 80,
+	Rounding = 0,
+})
+
+PlayerBox:AddToggle("Fly", { Text = "Fly", Default = false })
+PlayerBox:AddSlider("FlySpeed", {
+	Text = "Fly Speed",
+	Default = 30,
+	Min = 10,
+	Max = 100,
+	Rounding = 0,
+})
+
+local AutoBox = Tabs.Main:AddRightGroupbox("Automation")
+
+AutoBox:AddToggle("InstantInteract", { Text = "Instant Interaction", Default = true })
+AutoBox:AddToggle("AutoInteract", { Text = "Auto Interaction", Default = false })
+AutoBox:AddSlider("AutoInteractInterval", {
+	Text = "Auto Interact Interval",
+	Default = 0.06,
+	Min = 0.03,
+	Max = 0.3,
+	Rounding = 2,
+})
+AutoBox:AddToggle("DoorReach", { Text = "Door Reach", Default = false })
+AutoBox:AddSlider("DoorReachDist", {
+	Text = "Distance to Open",
+	Default = 25,
+	Min = 10,
+	Max = 80,
+	Rounding = 0,
+})
+AutoBox:AddToggle("AutoLoot", { Text = "Auto Loot / Gold", Default = false })
+
+-- =========================================================
+-- FLOOR
+-- =========================================================
+local FloorBox = Tabs.Floor:AddLeftGroupbox("Floor Functions")
+FloorBox:AddToggle("AntiSeekObstruction", { Text = "Anti Seek Obstruction", Default = true })
+FloorBox:AddToggle("AntiJeffFE", { Text = "Anti-Jeff (FE)", Default = false })
+
+local FloorMod = Tabs.Floor:AddRightGroupbox("Modifiers")
+FloorMod:AddToggle("AntiGiggle", { Text = "Anti Giggle", Default = true })
+FloorMod:AddToggle("AntiA90", { Text = "Anti A-90", Default = true })
+FloorMod:AddToggle("AntiRansom", { Text = "Anti Ransom", Default = true })
+FloorMod:AddToggle("AntiHaste", { Text = "Anti Haste Effect", Default = true })
+FloorMod:AddToggle("AntiJeffClient", { Text = "Anti Jeff (Client)", Default = false })
+
+-- =========================================================
+-- VISUALS
+-- =========================================================
+local AmbientBox = Tabs.Visuals:AddLeftGroupbox("Ambient")
+AmbientBox:AddToggle("Fullbright", { Text = "Full Brightness", Default = false })
+AmbientBox:AddToggle("NoFog", { Text = "No Fog", Default = true })
+AmbientBox:AddToggle("NoBlur", { Text = "No blur effect", Default = true })
+AmbientBox:AddToggle("NoCameraShake", { Text = "No CameraShake", Default = true })
+AmbientBox:AddToggle("ReduceLag", { Text = "Reduce Lag", Default = true })
+
+local ESPBox = Tabs.Visuals:AddRightGroupbox("ESP")
+ESPBox:AddToggle("EntityESP", { Text = "ESP Entities", Default = true })
+ESPBox:AddToggle("DoorESP", { Text = "ESP Doors / Structures", Default = false })
+ESPBox:AddToggle("PlayerESP", { Text = "ESP Players", Default = false })
+ESPBox:AddToggle("NotifyEntities", { Text = "Notify Entities", Default = true })
+
+-- =========================================================
+-- EXPLOITS
+-- =========================================================
+local AntiBox = Tabs.Exploits:AddLeftGroupbox("Anti-Entities")
+AntiBox:AddToggle("AntiAll", { Text = "Anti All Entities", Default = true })
+AntiBox:AddToggle("NoScreechDamage", { Text = "No Screech Damage", Default = true })
+AntiBox:AddToggle("NoHaltDamage", { Text = "No Halt Damage", Default = true })
+AntiBox:AddToggle("AntiScreech", { Text = "Anti-Screech", Default = true })
+AntiBox:AddToggle("AntiEyes", { Text = "Anti-Eyes", Default = true })
+AntiBox:AddToggle("AntiSnare", { Text = "Anti-Snare", Default = true })
+AntiBox:AddToggle("AntiDupe", { Text = "Anti-Dupe", Default = true })
+AntiBox:AddToggle("DeafFigure", { Text = "Deaf Figure", Default = true })
+AntiBox:AddToggle("AutoHide", { Text = "Auto Hide (Rush/Ambush)", Default = true })
+
+local BypassBox = Tabs.Exploits:AddRightGroupbox("Bypass")
+BypassBox:AddToggle("Godmode", { Text = "GodMode", Default = true })
+BypassBox:AddToggle("FixGodmodeCollision", { Text = "Fix godmode collision", Default = true })
+BypassBox:AddToggle("NoclipBypass", { Text = "Noclip Bypass", Default = false })
+BypassBox:AddToggle("ACBypass", {
+	Text = "Anticheat Bypass",
+	Default = true,
+	Tooltip = "Metatable spoof + remote filter + weak-table bypass",
+})
+BypassBox:AddToggle("InfiniteCrucifix", { Text = "Infinite Crucifix", Default = false })
+
+-- =========================================================
+-- SETTINGS
+-- =========================================================
+local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu")
+MenuGroup:AddToggle("ShowCustomCursor", {
+	Text = "Custom Cursor", Default = true,
+	Callback = function(v) Library.ShowCustomCursor = v end,
+})
+MenuGroup:AddDropdown("NotificationSide", {
+	Values = { "Left", "Right" }, Default = "Right", Text = "Notification Side",
+	Callback = function(v) Library:SetNotifySide(v) end,
+})
+MenuGroup:AddDropdown("DPIDropdown", {
+	Values = { "50%", "75%", "100%", "125%", "150%", "175%", "200%" },
+	Default = "100%", Text = "DPI Scale",
+	Callback = function(v)
+		local n = tonumber((v:gsub("%%", "")))
+		if n then Library:SetDPIScale(n) end
+	end,
+})
+MenuGroup:AddDivider()
+MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {
+	Default = "RightShift", NoUI = true, Text = "Menu keybind",
+})
+MenuGroup:AddButton("Unload", function() Library:Unload() end)
+Library.ToggleKeybind = Options.MenuKeybind
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+ThemeManager:SetFolder("NIXUS")
+SaveManager:SetFolder("NIXUS/configs")
+SaveManager:BuildConfigSection(Tabs["UI Settings"])
+ThemeManager:ApplyToTab(Tabs["UI Settings"])
+pcall(function() SaveManager:LoadAutoloadConfig() end)
+
+-- =========================================================
+-- SERVICES
+-- =========================================================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LP = Players.LocalPlayer
+
+local State = {
+	DoorList = {},
+	EntityList = {},
+	OriginalFog = Lighting.FogEnd,
+	OriginalBrightness = Lighting.Brightness,
+	OriginalClock = Lighting.ClockTime,
+	RealSpeed = 16,
+	SpoofSpeed = 16,
+}
+
+pcall(function()
+	local old = CoreGui:FindFirstChild("NIXUS_ESP")
+	if old then old:Destroy() end
+end)
+
+local ESPFolder = Instance.new("Folder")
+ESPFolder.Name = "NIXUS_ESP"
+ESPFolder.Parent = CoreGui
+
+local function clearESP()
+	for _, c in ipairs(ESPFolder:GetChildren()) do c:Destroy() end
+end
+
+local function makeBillboard(adornee, text, color)
+	if not adornee then return end
+	local bb = Instance.new("BillboardGui")
+	bb.Adornee = adornee
+	bb.Size = UDim2.new(0, 150, 0, 28)
+	bb.StudsOffset = Vector3.new(0, 3, 0)
+	bb.AlwaysOnTop = true
+	bb.Parent = ESPFolder
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(1, 0, 1, 0)
+	lbl.BackgroundTransparency = 0.25
+	lbl.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	lbl.Text = text
+	lbl.TextColor3 = color
+	lbl.Font = Enum.Font.GothamBold
+	lbl.TextSize = 12
+	lbl.Parent = bb
+	Instance.new("UICorner", lbl).CornerRadius = UDim.new(0, 4)
+end
+
+local function getHum()
+	local c = LP.Character
+	return c and c:FindFirstChildOfClass("Humanoid")
+end
+
+local function getRoot()
+	local c = LP.Character
+	return c and c:FindFirstChild("HumanoidRootPart")
+end
+
+local function safeFirePrompt(prompt)
+	if not prompt then return end
+	pcall(function()
+		prompt.HoldDuration = 0
+		if fireproximityprompt then
+			fireproximityprompt(prompt)
+		else
+			prompt:InputHoldBegin()
+			task.wait(0.03)
+			prompt:InputHoldEnd()
+		end
+	end)
+end
+
+function refreshLists()
+	State.DoorList = {}
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		local n = string.lower(obj.Name)
+		if (string.find(n, "door") or string.find(n, "gate") or string.find(n, "entrance"))
+			and (obj:IsA("BasePart") or obj:IsA("Model") or obj:IsA("Folder")) then
+			table.insert(State.DoorList, obj)
+		end
+	end
+end
+
+-- =========================================================
+-- ANTICHEAT BYPASS LAYER (inspired by the remote/metatable pattern)
+-- =========================================================
+local AC = {
+	active = false,
+	hooks = {},
+}
+
+local function safeHook(fnName, original, replacement)
+	if type(hookfunction) ~= "function" then return nil end
+	local ok, old = pcall(function()
+		return hookfunction(original, newcclosure and newcclosure(replacement) or replacement)
+	end)
+	if ok then return old end
+	return nil
+end
+
+-- 1) setmetatable weak-table bypass (MiscellaneousController style)
+pcall(function()
+	if type(getrenv) ~= "function" or type(hookfunction) ~= "function" then return end
+	local env = getrenv()
+	if type(env.setmetatable) ~= "function" then return end
+	local old
+	old = hookfunction(env.setmetatable, newcclosure and newcclosure(function(tbl, mt)
+		if mt and typeof(mt) == "table" and rawget(mt, "__mode") == "kv" then
+			local tr = debug.traceback()
+			if tr and (tr:find("MiscellaneousController") or tr:find("AntiCheat") or tr:find("Security")) then
+				return old({1, 2, 3}, {})
+			end
+		end
+		return old(tbl, mt)
+	end) or function(tbl, mt)
+		return old(tbl, mt)
+	end)
+	AC.hooks.setmetatable = true
+end)
+
+-- 2) WalkSpeed / JumpPower spoof via __index / __newindex on Humanoid
+local function installSpeedSpoof(hum)
+	if not hum or not Toggles.ACBypass or not Toggles.ACBypass.Value then return end
+	if not Toggles.SpeedBypass or not Toggles.SpeedBypass.Value then return end
+
+	pcall(function()
+		local mt = getrawmetatable and getrawmetatable(hum)
+		if not mt then return end
+		if type(setreadonly) == "function" then pcall(setreadonly, mt, false) end
+
+		local oldIndex = mt.__index
+		local oldNewIndex = mt.__newindex
+
+		mt.__index = newcclosure and newcclosure(function(self, key)
+			if key == "WalkSpeed" and Toggles.SpeedBypass and Toggles.SpeedBypass.Value then
+				return 16 -- game reads 16
+			end
+			if key == "JumpPower" and Options.JumpBoost and Options.JumpBoost.Value > 0 then
+				return 50
+			end
+			if type(oldIndex) == "function" then
+				return oldIndex(self, key)
+			end
+			return rawget(self, key)
+		end) or function(self, key)
+			if key == "WalkSpeed" then return 16 end
+			return type(oldIndex) == "function" and oldIndex(self, key) or rawget(self, key)
+		end
+
+		mt.__newindex = newcclosure and newcclosure(function(self, key, value)
+			if key == "WalkSpeed" and Toggles.SpeedBypass and Toggles.SpeedBypass.Value then
+				-- allow our sets, block game resets to 16 while we want speed
+				if Toggles.WalkSpeedEnabled and Toggles.WalkSpeedEnabled.Value then
+					State.RealSpeed = Options.WalkSpeed and Options.WalkSpeed.Value or 22
+					return rawset(self, key, State.RealSpeed)
+				end
+			end
+			if type(oldNewIndex) == "function" then
+				return oldNewIndex(self, key, value)
+			end
+			return rawset(self, key, value)
+		end) or function(self, key, value)
+			return type(oldNewIndex) == "function" and oldNewIndex(self, key, value) or rawset(self, key, value)
+		end
+
+		AC.hooks.speedSpoof = true
+	end)
+end
+
+-- 3) Remote namecall filter — suppress common speed/cheat report remotes
+pcall(function()
+	if type(hookmetamethod) ~= "function" and type(hookfunction) ~= "function" then return end
+
+	local blocked = {
+		"reportspeed", "speedcheck", "walkspeed", "anticheat", "kick", "ban",
+		"detect", "flag", "security", "validate", "checkspeed",
+	}
+
+	local function shouldBlock(name)
+		if not name then return false end
+		local n = string.lower(tostring(name))
+		for _, b in ipairs(blocked) do
+			if string.find(n, b, 1, true) then return true end
+		end
+		return false
+	end
+
+	if type(hookmetamethod) == "function" then
+		local old
+		old = hookmetamethod(game, "__namecall", newcclosure and newcclosure(function(self, ...)
+			local method = getnamecallmethod and getnamecallmethod() or ""
+			if method == "FireServer" or method == "InvokeServer" then
+				if Toggles.ACBypass and Toggles.ACBypass.Value and shouldBlock(self.Name) then
+					return
+				end
+			end
+			return old(self, ...)
+		end) or function(self, ...)
+			return old(self, ...)
+		end)
+		AC.hooks.namecall = true
+	end
+end)
+
+AC.active = true
+print("[NIXUS] AC layer installed | setmetatable=" .. tostring(AC.hooks.setmetatable)
+	.. " speedSpoof ready | namecall=" .. tostring(AC.hooks.namecall))
+
+-- =========================================================
+-- SPEED — no glitch method
+-- When Speed Bypass is on: set real WalkSpeed once, spoof reads to 16
+-- When off: soft re-apply only if the game resets it (no every-frame fight)
+-- =========================================================
+local lastAppliedSpeed = 0
+
+local function applySpeed()
+	local hum = getHum()
+	if not hum then return end
+	if not (Toggles.WalkSpeedEnabled and Toggles.WalkSpeedEnabled.Value) then return end
+
+	local target = Options.WalkSpeed and Options.WalkSpeed.Value or 22
+	State.RealSpeed = target
+
+	if Toggles.SpeedBypass and Toggles.SpeedBypass.Value then
+		-- set once; spoof handles server reads
+		if math.abs(hum.WalkSpeed - target) > 0.5 then
+			hum.WalkSpeed = target
+			lastAppliedSpeed = target
+		end
+	else
+		-- soft lock: only correct if game changed it
+		if math.abs(hum.WalkSpeed - target) > 0.5 then
+			hum.WalkSpeed = target
+			lastAppliedSpeed = target
+		end
+	end
+end
+
+-- moderate re-apply (not every frame → no rubberband)
+task.spawn(function()
+	while true do
+		task.wait(0.15)
+		applySpeed()
+		if Options.JumpBoost and Options.JumpBoost.Value > 0 then
+			local hum = getHum()
+			if hum then
+				hum.UseJumpPower = true
+				hum.JumpPower = 50 + Options.JumpBoost.Value
+			end
+		end
+	end
+end)
+
+Options.WalkSpeed:OnChanged(function()
+	applySpeed()
+end)
+
+Toggles.WalkSpeedEnabled:OnChanged(function()
+	applySpeed()
+end)
+
+Toggles.SpeedBypass:OnChanged(function()
+	local hum = getHum()
+	if hum then installSpeedSpoof(hum) end
+	applySpeed()
+end)
+
+-- =========================================================
+-- CHARACTER HOOK
+-- =========================================================
+local function onCharacter(char)
+	task.wait(0.35)
+	local hum = char:WaitForChild("Humanoid", 5)
+	if not hum then return end
+
+	installSpeedSpoof(hum)
+	applySpeed()
+
+	hum.HealthChanged:Connect(function()
+		if Toggles.Godmode and Toggles.Godmode.Value then
+			hum.Health = hum.MaxHealth
+		end
+	end)
+
+	-- if game resets WalkSpeed, put ours back (without spam)
+	hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+		if Toggles.WalkSpeedEnabled and Toggles.WalkSpeedEnabled.Value then
+			local target = Options.WalkSpeed and Options.WalkSpeed.Value or 22
+			if math.abs(hum.WalkSpeed - target) > 0.5 then
+				task.defer(function()
+					if Toggles.WalkSpeedEnabled.Value then
+						hum.WalkSpeed = target
+					end
+				end)
+			end
+		end
+	end)
+end
+
+if LP.Character then task.spawn(onCharacter, LP.Character) end
+LP.CharacterAdded:Connect(onCharacter)
+
+-- =========================================================
+-- NOCLIP
+-- =========================================================
+RunService.Stepped:Connect(function()
+	if (Toggles.Noclip and Toggles.Noclip.Value) or (Toggles.NoclipBypass and Toggles.NoclipBypass.Value) then
+		local char = LP.Character
+		if char then
+			for _, p in ipairs(char:GetDescendants()) do
+				if p:IsA("BasePart") then p.CanCollide = false end
+			end
+		end
+	end
+end)
+
+-- =========================================================
+-- INF JUMP
+-- =========================================================
+UserInputService.JumpRequest:Connect(function()
+	if Toggles.InfJump and Toggles.InfJump.Value then
+		local hum = getHum()
+		if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+	end
+end)
+
+-- =========================================================
+-- FLY
+-- =========================================================
+local flyBV, flyBG
+task.spawn(function()
+	while true do
+		task.wait(0.03)
+		if Toggles.Fly and Toggles.Fly.Value then
+			local root = getRoot()
+			local hum = getHum()
+			if root and hum then
+				hum.PlatformStand = true
+				if not flyBV then
+					flyBV = Instance.new("BodyVelocity")
+					flyBV.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+					flyBV.Velocity = Vector3.zero
+					flyBV.Parent = root
+					flyBG = Instance.new("BodyGyro")
+					flyBG.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+					flyBG.P = 9e4
+					flyBG.Parent = root
+				end
+				local cam = workspace.CurrentCamera
+				local dir = Vector3.zero
+				if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + cam.CFrame.LookVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - cam.CFrame.LookVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - cam.CFrame.RightVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + cam.CFrame.RightVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0, 1, 0) end
+				if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir = dir - Vector3.new(0, 1, 0) end
+				local spd = Options.FlySpeed and Options.FlySpeed.Value or 30
+				if dir.Magnitude > 0.1 then
+					flyBV.Velocity = dir.Unit * spd
+				else
+					flyBV.Velocity = Vector3.zero
+				end
+				flyBG.CFrame = cam.CFrame
+			end
+		else
+			if flyBV then flyBV:Destroy() flyBV = nil end
+			if flyBG then flyBG:Destroy() flyBG = nil end
+			local hum = getHum()
+			if hum then hum.PlatformStand = false end
+		end
+	end
+end)
+
+-- =========================================================
+-- GODMODE
+-- =========================================================
+task.spawn(function()
+	while true do
+		task.wait(0.04)
+		if Toggles.Godmode and Toggles.Godmode.Value then
+			local hum = getHum()
+			if hum then
+				hum.Health = hum.MaxHealth
+				pcall(function()
+					hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+					hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+					hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+				end)
+			end
+		end
+	end
+end)
+
+-- =========================================================
+-- LIGHTING
+-- =========================================================
+task.spawn(function()
+	while true do
+		task.wait(0.4)
+		pcall(function()
+			if Toggles.Fullbright and Toggles.Fullbright.Value then
+				Lighting.Brightness = 3
+				Lighting.ClockTime = 14
+				Lighting.FogEnd = 9e9
+				Lighting.GlobalShadows = false
+				Lighting.OutdoorAmbient = Color3.fromRGB(180, 180, 180)
+			else
+				Lighting.Brightness = State.OriginalBrightness
+				Lighting.ClockTime = State.OriginalClock
+				Lighting.GlobalShadows = true
+			end
+			if Toggles.NoFog and Toggles.NoFog.Value then
+				Lighting.FogEnd = 9e9
+				Lighting.FogStart = 0
+			end
+			if Toggles.NoBlur and Toggles.NoBlur.Value then
+				for _, v in ipairs(Lighting:GetChildren()) do
+					if v:IsA("BlurEffect") then v.Enabled = false end
+				end
+			end
+		end)
+	end
+end)
+
+-- =========================================================
+-- INSTANT / AUTO INTERACT
+-- =========================================================
+task.spawn(function()
+	while true do
+		local interval = (Options.AutoInteractInterval and Options.AutoInteractInterval.Value) or 0.06
+		task.wait(interval)
+		if Toggles.InstantInteract and Toggles.InstantInteract.Value then
+			for _, p in ipairs(workspace:GetDescendants()) do
+				if p:IsA("ProximityPrompt") then
+					p.HoldDuration = 0
+					if p.MaxActivationDistance < 18 then p.MaxActivationDistance = 18 end
+				end
+			end
+		end
+		if Toggles.AutoInteract and Toggles.AutoInteract.Value then
+			local root = getRoot()
+			if root then
+				for _, p in ipairs(workspace:GetDescendants()) do
+					if p:IsA("ProximityPrompt") and p.Enabled then
+						local part = p.Parent
+						if part and part:IsA("BasePart") and (part.Position - root.Position).Magnitude < 18 then
+							safeFirePrompt(p)
+						end
+					end
+				end
+			end
+		end
+	end
+end)
+
+-- =========================================================
+-- DOOR REACH
+-- =========================================================
+task.spawn(function()
+	while true do
+		task.wait(0.25)
+		if Toggles.DoorReach and Toggles.DoorReach.Value then
+			local dist = Options.DoorReachDist and Options.DoorReachDist.Value or 25
+			for _, d in ipairs(State.DoorList) do
+				pcall(function()
+					for _, c in ipairs(d:GetDescendants()) do
+						if c:IsA("ProximityPrompt") then
+							c.Enabled = true
+							c.HoldDuration = 0
+							c.MaxActivationDistance = dist
+						end
+						if c:IsA("BasePart") then c.CanCollide = false end
+					end
+				end)
+			end
+		end
+	end
+end)
+
+-- =========================================================
+-- AUTO LOOT
+-- =========================================================
+task.spawn(function()
+	while true do
+		task.wait(0.35)
+		if Toggles.AutoLoot and Toggles.AutoLoot.Value then
+			local root = getRoot()
+			if root then
+				for _, obj in ipairs(workspace:GetDescendants()) do
+					local n = string.lower(obj.Name)
+					if string.find(n, "gold") or string.find(n, "coin") or string.find(n, "key")
+						or string.find(n, "bandage") or string.find(n, "candle") or string.find(n, "crucifix")
+						or string.find(n, "lighter") or string.find(n, "vitamins") then
+						local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart", true)
+						if part and (part.Position - root.Position).Magnitude < 28 then
+							for _, p in ipairs(obj:GetDescendants()) do
+								if p:IsA("ProximityPrompt") then safeFirePrompt(p) end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end)
+
+-- =========================================================
+-- ESP
+-- =========================================================
+RunService.RenderStepped:Connect(function()
+	clearESP()
+	if Toggles.PlayerESP and Toggles.PlayerESP.Value then
+		for _, plr in ipairs(Players:GetPlayers()) do
+			if plr ~= LP and plr.Character then
+				local root = plr.Character:FindFirstChild("HumanoidRootPart")
+				if root then makeBillboard(root, plr.Name, Color3.fromRGB(100, 180, 255)) end
+			end
+		end
+	end
+	if Toggles.DoorESP and Toggles.DoorESP.Value then
+		for _, d in ipairs(State.DoorList) do
+			local part = d:IsA("BasePart") and d or d:FindFirstChildWhichIsA("BasePart", true)
+			if part then makeBillboard(part, d.Name, Color3.fromRGB(100, 255, 140)) end
+		end
+	end
+	if Toggles.EntityESP and Toggles.EntityESP.Value then
+		for _, ent in ipairs(State.EntityList) do
+			if ent and ent.Parent then
+				local part = ent:IsA("BasePart") and ent or ent:FindFirstChildWhichIsA("BasePart", true)
+				if part then makeBillboard(part, ent.Name, Color3.fromRGB(255, 70, 70)) end
+			end
+		end
+	end
+end)
+
+-- =========================================================
+-- ANTI ENTITY
+-- =========================================================
+local KillList = {
+	"Rush", "Ambush", "Seek", "Figure", "Screech", "Eyes", "Halt", "Dupe", "Hide",
+	"Timothy", "Jack", "Shadow", "Void", "Snare", "Dread", "Sally", "Window",
+	"Giggle", "Gloombats", "Grumble", "Queen Grumble", "Louie", "Dam Seek",
+	"Blitz", "Haste", "Lookman", "A-60", "A-90", "A-120", "A60", "A90", "A120",
+	"The Groundskeeper", "Mandrake", "Monument", "Eyestalk", "Bramble", "Surge", "Caw", "Grampy", "The World Lotus",
+	"Honcho", "Alma", "Teller", "Ransom", "Drones", "Bash", "Scribbles", "Forget-Me-Not",
+	"Portrait", "Fih", "Creak", "Noise", "Stem", "Cobbler", "Meld", "Hijack",
+	"The Unnamed Red Light", "Glitch",
+	"RushMoving", "AmbushMoving", "SeekMoving", "FigureRig",
+}
+
+local function shouldKill(name)
+	if not (Toggles.AntiAll and Toggles.AntiAll.Value) then return false end
+	for _, n in ipairs(KillList) do
+		if name == n then return true end
+	end
+	return false
+end
+
+local function neutralize(obj)
+	pcall(function()
+		for _, c in ipairs(obj:GetDescendants()) do
+			if c:IsA("Sound") then c.Volume = 0 c:Stop() end
+			if c:IsA("BasePart") then c.CanCollide = false c.Transparency = 1 end
+			if c:IsA("ParticleEmitter") or c:IsA("Trail") then c.Enabled = false end
+		end
+		obj:Destroy()
+	end)
+end
+
+local function findNearestCloset()
+	local root = getRoot()
+	if not root then return nil end
+	local closest, dist = nil, 50
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		local n = string.lower(obj.Name)
+		if string.find(n, "closet") or string.find(n, "wardrobe") or string.find(n, "cabinet") or string.find(n, "locker") then
+			local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart", true)
+			if part then
+				local d = (part.Position - root.Position).Magnitude
+				if d < dist then closest = obj dist = d end
+			end
+		end
+	end
+	return closest
+end
+
+local function forceHide()
+	local closet = findNearestCloset()
+	if not closet then return end
+	local prompt = closet:FindFirstChildWhichIsA("ProximityPrompt", true)
+	if prompt then safeFirePrompt(prompt) end
+	local part = closet:IsA("BasePart") and closet or closet:FindFirstChildWhichIsA("BasePart", true)
+	local root = getRoot()
+	if part and root then
+		pcall(function() root.CFrame = part.CFrame * CFrame.new(0, 1.5, 0) end)
+	end
+end
+
+local lastNotify = 0
+
+local function processEntity(obj)
+	if not obj or not obj.Parent then return end
+	if not shouldKill(obj.Name) then return end
+	table.insert(State.EntityList, obj)
+	if Toggles.NotifyEntities and Toggles.NotifyEntities.Value and (tick() - lastNotify) > 1.5 then
+		Library:Notify("Entity: " .. obj.Name, 2)
+		lastNotify = tick()
+	end
+	if Toggles.AutoHide and Toggles.AutoHide.Value then
+		local n = obj.Name
+		if n == "Rush" or n == "Ambush" or n == "RushMoving" or n == "AmbushMoving" then
+			forceHide()
+		end
+	end
+	if Toggles.ReduceLag and Toggles.ReduceLag.Value then
+		for _, s in ipairs(obj:GetDescendants()) do
+			if s:IsA("Sound") then s.Volume = 0 s:Stop() end
+		end
+	end
+	neutralize(obj)
+end
+
+task.spawn(function()
+	while true do
+		task.wait(0.08)
+		State.EntityList = {}
+		if Toggles.AntiAll and Toggles.AntiAll.Value then
+			pcall(function()
+				for _, obj in ipairs(workspace:GetDescendants()) do
+					processEntity(obj)
+				end
+			end)
+		end
+	end
+end)
+
+workspace.DescendantAdded:Connect(function(obj)
+	if Toggles.AntiAll and Toggles.AntiAll.Value then
+		task.defer(function() processEntity(obj) end)
+	end
+end)
+
+-- =========================================================
+-- START
+-- =========================================================
+task.delay(1.2, function()
+	refreshLists()
+	Library:Notify("NIXUS ready — speed no-glitch + AC bypass", 5)
+end)
+
+print("[NIXUS] systems online")
